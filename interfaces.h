@@ -11,7 +11,6 @@
 
 @interface BBBulletin : NSObject
 
-@property(copy, nonatomic) NSString *sectionID;
 @property(retain, nonatomic) NSDictionary *context;
 
 @end
@@ -23,7 +22,7 @@
 @end
 
 @interface SBLockScreenNotificationCell : UITableViewCell
-
+@property(readonly, nonatomic) UIView *iconView;
 @property(retain, nonatomic) UIImage *icon;
 
 @end
@@ -40,8 +39,7 @@
 
 @end
 
-@interface SBLockScreenNotificationListView : UIView 
-
+@interface SBLockScreenNotificationListView : UIView
 @end
 
 #endif

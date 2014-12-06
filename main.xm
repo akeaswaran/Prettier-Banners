@@ -1,5 +1,6 @@
 #import <UIKit/UIKit.h>
 #import <AddressBook/AddressBook.h>
+#import <QuartzCore/QuartzCore.h>
 #import "interfaces.h"
 #import "substrate.h"
 
@@ -37,6 +38,36 @@ static ABRecordRef getPersonFromBulletin(BBBulletin *bulletin)
 	return person;
 }
 
+static UIImage* croppedIconImage(UIImage *image) {
+   UIImage * chosenImage = image;
+
+   CGFloat imageWidth  = chosenImage.size.width;
+   CGFloat imageHeight = chosenImage.size.height;
+
+   CGRect cropRect;
+
+   cropRect = CGRectMake ((imageHeight - imageWidth) / 2.0, 0.0, imageWidth, imageWidth);
+
+   // Draw new image in current graphics context
+   CGImageRef imageRef = CGImageCreateWithImageInRect ([chosenImage CGImage], cropRect);
+
+   // Create new cropped UIImage
+   UIImage * croppedImage = [UIImage imageWithCGImage: imageRef scale: chosenImage.scale orientation: chosenImage.imageOrientation];
+
+   CGImageRelease (imageRef);
+
+   UIGraphicsBeginImageContextWithOptions(croppedImage.size, NO, 0.0);   //  <= notice 0.0 as third scale parameter. It is important cause default draw scale ≠ 1.0. Try 1.0 - it will draw an ugly image..
+   CGFloat cornerRadius = croppedImage.size.height / 2;
+   CGRect bounds=(CGRect){CGPointZero,croppedImage.size};
+   [[UIBezierPath bezierPathWithRoundedRect:bounds
+                                cornerRadius:cornerRadius] addClip];
+   [image drawInRect:bounds];
+   UIImage *finalImage = UIGraphicsGetImageFromCurrentImageContext();
+   UIGraphicsEndImageContext();
+
+   return finalImage;
+}
+
 %hook SBBulletinBannerItem
 
 - (UIImage*)iconImage
@@ -46,7 +77,7 @@ static ABRecordRef getPersonFromBulletin(BBBulletin *bulletin)
 	if(person) {
 		image = getABPersonImage(person) ? : image;
 	}
-	return image;
+	return croppedIconImage(image);
 }
 
 - (NSString*)title
@@ -60,7 +91,11 @@ static ABRecordRef getPersonFromBulletin(BBBulletin *bulletin)
 		names = [NSMutableArray array];
 		for(NSDictionary *entry in msgRecipients) {
 			NSDictionary *object = [NSDictionary dictionaryWithDictionary:entry[@"object"]];
-			[names addObject:object[@"firstName"]];
+            if([[object allKeys] containsObject:@"firstName"]) {
+				[names addObject:object[@"firstName"]];
+			} else {
+				[names addObject:entry[@"data"]];
+			}
 		}
 	}
 	
@@ -88,7 +123,7 @@ static ABRecordRef getPersonFromBulletin(BBBulletin *bulletin)
 		if(person) {
             UIImage *icon = getABPersonImage(person);
             if(icon) {
-                cell.icon = icon;
+                cell.icon = croppedIconImage(icon);
             }
 		}
     }
