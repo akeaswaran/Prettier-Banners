@@ -22,7 +22,7 @@
 @end
 
 @interface SBLockScreenNotificationCell : UITableViewCell
-@property(readonly, nonatomic) UIView *iconView;
+@property(readonly, nonatomic) UIImageView *iconView;
 @property(retain, nonatomic) UIImage *icon;
 
 @end
