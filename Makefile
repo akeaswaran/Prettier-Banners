@@ -1,7 +1,7 @@
 TWEAK_NAME = PrettierBanners
 
 PrettierBanners_FILES = main.xm
-PrettierBanners_FRAMEWORKS = UIKit AddressBook CoreGraphics
+PrettierBanners_FRAMEWORKS = UIKit AddressBook QuartzCore CoreGraphics
 
 export TARGET = iphone:clang
 export ARCHS = armv7 armv7s arm64
