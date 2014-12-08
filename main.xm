@@ -21,7 +21,7 @@ static NSArray *getABPersons()
 
 static UIImage *getABPersonImage(ABRecordRef person)
 {
-	return ABPersonHasImageData(person) ? [UIImage imageWithData:(__bridge NSData*)ABPersonCopyImageData(person)] : nil;
+	return ABPersonHasImageData(person) ? [UIImage imageWithData:(__bridge NSData *)ABPersonCopyImageDataWithFormat(person, kABPersonImageFormatOriginalSize)] : nil;
 }
 
 static ABRecordRef getPersonFromBulletin(BBBulletin *bulletin)
