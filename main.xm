@@ -39,7 +39,24 @@ static ABRecordRef getPersonFromBulletin(BBBulletin *bulletin)
 }
 
 static UIImage *roundedImage(UIImage* image) {
-	CGRect iconImageRect = (CGRect){CGPointZero, image.size};
+	UIImage * chosenImage = image;
+
+	CGFloat imageWidth  = chosenImage.size.width;
+	CGFloat imageHeight = chosenImage.size.height;
+
+	CGRect cropRect;
+
+	cropRect = CGRectMake ((imageHeight - imageWidth) / 2.0, 0.0, imageWidth, imageWidth);
+
+	// Draw new image in current graphics context
+	CGImageRef imageRef = CGImageCreateWithImageInRect ([chosenImage CGImage], cropRect);
+
+	// Create new cropped UIImage
+	UIImage * croppedImage = [UIImage imageWithCGImage: imageRef scale: chosenImage.scale orientation: chosenImage.imageOrientation];
+
+	CGImageRelease (imageRef);
+
+	CGRect iconImageRect = (CGRect){CGPointZero, croppedImage.size};
 			
 	UIGraphicsBeginImageContextWithOptions(iconImageRect.size, NO, [UIScreen mainScreen].scale);
 	CGContextRef context = UIGraphicsGetCurrentContext();
@@ -48,7 +65,7 @@ static UIImage *roundedImage(UIImage* image) {
 	CGContextAddEllipseInRect(context, iconImageRect);
 	CGContextClip(context);
 	CGContextClearRect(context, iconImageRect);
-	[image drawInRect:iconImageRect];
+	[croppedImage drawInRect:iconImageRect];
 
 	UIImage *circularScaledImage = UIGraphicsGetImageFromCurrentImageContext(); 
 	UIGraphicsEndImageContext();
