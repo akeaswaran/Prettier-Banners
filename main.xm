@@ -1,6 +1,6 @@
 #import <UIKit/UIKit.h>
+#import <CoreGraphics/CoreGraphics.h>
 #import <AddressBook/AddressBook.h>
-#import <QuartzCore/QuartzCore.h>
 #import "interfaces.h"
 #import "substrate.h"
 
@@ -38,34 +38,21 @@ static ABRecordRef getPersonFromBulletin(BBBulletin *bulletin)
 	return person;
 }
 
-static UIImage* croppedIconImage(UIImage *image) {
-   UIImage * chosenImage = image;
+static UIImage *roundedImage(UIImage* image) {
+	CGRect iconImageRect = (CGRect){CGPointZero, image.size};
+			
+	UIGraphicsBeginImageContextWithOptions(iconImageRect.size, NO, [UIScreen mainScreen].scale);
+	CGContextRef context = UIGraphicsGetCurrentContext();
 
-   CGFloat imageWidth  = chosenImage.size.width;
-   CGFloat imageHeight = chosenImage.size.height;
+	CGContextSaveGState(context);
+	CGContextAddEllipseInRect(context, iconImageRect);
+	CGContextClip(context);
+	CGContextClearRect(context, iconImageRect);
+	[image drawInRect:iconImageRect];
 
-   CGRect cropRect;
-
-   cropRect = CGRectMake ((imageHeight - imageWidth) / 2.0, 0.0, imageWidth, imageWidth);
-
-   // Draw new image in current graphics context
-   CGImageRef imageRef = CGImageCreateWithImageInRect ([chosenImage CGImage], cropRect);
-
-   // Create new cropped UIImage
-   UIImage * croppedImage = [UIImage imageWithCGImage: imageRef scale: chosenImage.scale orientation: chosenImage.imageOrientation];
-
-   CGImageRelease (imageRef);
-
-   UIGraphicsBeginImageContextWithOptions(croppedImage.size, NO, 0.0);   //  <= notice 0.0 as third scale parameter. It is important cause default draw scale ≠ 1.0. Try 1.0 - it will draw an ugly image..
-   CGFloat cornerRadius = croppedImage.size.height / 2;
-   CGRect bounds=(CGRect){CGPointZero,croppedImage.size};
-   [[UIBezierPath bezierPathWithRoundedRect:bounds
-                                cornerRadius:cornerRadius] addClip];
-   [image drawInRect:bounds];
-   UIImage *finalImage = UIGraphicsGetImageFromCurrentImageContext();
-   UIGraphicsEndImageContext();
-
-   return finalImage;
+	UIImage *circularScaledImage = UIGraphicsGetImageFromCurrentImageContext(); 
+	UIGraphicsEndImageContext();
+	return circularScaledImage;
 }
 
 %hook SBBulletinBannerItem
@@ -75,9 +62,13 @@ static UIImage* croppedIconImage(UIImage *image) {
 	UIImage *image = %orig;
 	ABRecordRef person = getPersonFromBulletin([self seedBulletin]);
 	if(person) {
-		image = getABPersonImage(person) ? : image;
+		UIImage *personImage = getABPersonImage(person);
+		if (personImage) {
+			return roundedImage(personImage);
+		}
 	}
-	return croppedIconImage(image);
+
+	return image;
 }
 
 - (NSString*)title
@@ -123,7 +114,7 @@ static UIImage* croppedIconImage(UIImage *image) {
 		if(person) {
             UIImage *icon = getABPersonImage(person);
             if(icon) {
-                cell.icon = croppedIconImage(icon);
+                cell.icon = roundedImage(icon);
             }
 		}
     }
