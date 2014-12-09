@@ -1,6 +1,5 @@
-
-*.4
-.theos/last_package
-.theos/fakeroot
+obj
+_
+.theos
 *.deb
 theos

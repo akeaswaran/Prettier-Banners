@@ -80,35 +80,6 @@ static UIImage* croppedIconImage(UIImage *image) {
 	return croppedIconImage(image);
 }
 
-- (NSString*)title
-{
-	NSMutableArray *names = nil;
-	NSString *title = %orig;
-	NSDictionary *assistantContext = [NSDictionary dictionaryWithDictionary:[self seedBulletin].context[@"AssistantContext"]];
-	
-	if([[assistantContext allKeys] containsObject:@"msgRecipients"]) {
-		NSArray *msgRecipients = [NSArray arrayWithArray:assistantContext[@"msgRecipients"]];
-		names = [NSMutableArray array];
-		for(NSDictionary *entry in msgRecipients) {
-			NSDictionary *object = [NSDictionary dictionaryWithDictionary:entry[@"object"]];
-            if([[object allKeys] containsObject:@"firstName"]) {
-				[names addObject:object[@"firstName"]];
-			} else {
-				[names addObject:entry[@"data"]];
-			}
-		}
-	}
-	
-	if(names) {
-		title = [names firstObject];
-		for(int i = 1; i < [names count]; i++) {
-			title = [NSString stringWithFormat:@"%@, %@", title, names[i]];
-		}
-	}
-	
-	return title;
-}
-
 %end
 
 %hook SBLockScreenNotificationListView
